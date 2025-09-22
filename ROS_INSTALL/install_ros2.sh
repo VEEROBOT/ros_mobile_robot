@@ -263,6 +263,21 @@ DEBIAN_FRONTEND=noninteractive apt install -y $PACKAGES
 
 log_success "ROS 2 packages installed successfully"
 
+# Step 6.5: Initialize rosdep
+log_info "Checking rosdep..."
+if ! command -v rosdep &> /dev/null; then
+    log_info "Installing python3-rosdep..."
+    DEBIAN_FRONTEND=noninteractive apt install -y python3-rosdep
+fi
+
+# Initialize rosdep if needed
+if ! rosdep update &> /dev/null; then
+    log_info "Initializing rosdep..."
+    rosdep init
+    rosdep update
+fi
+log_success "rosdep ready"
+
 # Step 7: Configure environment for the actual user
 log_info "Configuring ROS 2 environment..."
 
