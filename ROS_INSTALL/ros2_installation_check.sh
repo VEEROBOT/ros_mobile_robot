@@ -93,13 +93,27 @@ for pkg_info in "${DEV_PACKAGES[@]}"; do
     fi
 done
 
-# rosdep check
+# rosdep check and initialization
 if command -v rosdep &> /dev/null; then
     if rosdep update &> /dev/null; then
         check_pass "rosdep functional"
     else
-        check_warn "rosdep update failed - run: sudo rosdep init && rosdep update"
+        check_warn "rosdep update failed - attempting initialization..."
+        if sudo rosdep init &> /dev/null; then
+            if rosdep update &> /dev/null; then
+                check_pass "rosdep initialized and functional"
+            else
+                check_fail "rosdep update failed even after initialization"
+                echo "   → Run manually: sudo rosdep init && rosdep update"
+            fi
+        else
+            check_fail "rosdep init failed - check sudo privileges"
+            echo "   → Run manually: sudo rosdep init && rosdep update"
+        fi
     fi
+else
+    check_fail "rosdep command not found"
+    echo "   → Install: sudo apt install python3-rosdep"
 fi
 
 # 4. DEMO AND TEST PACKAGES
