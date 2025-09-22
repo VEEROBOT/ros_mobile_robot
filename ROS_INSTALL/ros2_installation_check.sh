@@ -58,10 +58,19 @@ CORE_PACKAGES=(
 
 for pkg_info in "${CORE_PACKAGES[@]}"; do
     IFS=':' read -r pkg desc <<< "$pkg_info"
-    if pkg_installed "$pkg"; then
-        check_pass "$desc ($pkg)"
+    # Use cached data for ROS packages, dpkg for system packages
+    if [[ "$pkg" == ros-jazzy-* ]]; then
+        if pkg_installed "$pkg"; then
+            check_pass "$desc ($pkg)"
+        else
+            check_warn "$desc ($pkg) - not installed"
+        fi
     else
-        check_warn "$desc ($pkg) - not installed"
+        if dpkg -l | grep -q "^ii.*$pkg "; then
+            check_pass "$desc ($pkg)"
+        else
+            check_warn "$desc ($pkg) - not installed"
+        fi
     fi
 done
 
